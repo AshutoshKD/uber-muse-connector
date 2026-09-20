@@ -1,6 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 const { uberClient, isSandbox } = require('../utils/uberClient');
+
+// Helper: get user OAuth client if Bearer token is provided
+const getUserClient = (req) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.replace('Bearer ', '');
+  if (!token) return null;
+  return axios.create({
+    baseURL: process.env.UBER_API_BASE_URL || 'https://api.uber.com/v1.2',
+    headers: { Authorization: `Bearer ${token}` },
+    timeout: 10000,
+  });
+};
 
 // In-memory ride store for sandbox mode
 const sandboxRides = new Map();
@@ -71,8 +84,18 @@ router.post('/request', async (req, res) => {
     });
   }
 
+  // Use user's OAuth token (required for real ride booking)
+  const userClient = getUserClient(req);
+  if (!userClient) {
+    return res.status(401).json({
+      error: 'User Uber account not connected',
+      message: 'User must authenticate with Uber first to book real rides',
+      how_to_connect: 'Call GET /auth/login to get the OAuth URL, redirect the user, then pass their access_token as: Authorization: Bearer <token>',
+    });
+  }
+
   try {
-    const response = await uberClient.post('/requests', {
+    const response = await userClient.post('/requests', {
       product_id,
       start_latitude: parseFloat(start_lat),
       start_longitude: parseFloat(start_lng),

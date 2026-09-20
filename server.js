@@ -45,6 +45,9 @@ app.get('/terms', (req, res) => res.send(`
 
 app.use('/health', require('./routes/health'));
 
+// ── OAuth Routes (public — user connects their Uber account) ──────
+app.use('/auth', require('./routes/auth'));
+
 // ── Protected Routes ──────────────────────────────────────────────
 app.use('/estimates', authenticateConnector, require('./routes/estimates'));
 app.use('/rides', authenticateConnector, require('./routes/rides'));
