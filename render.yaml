@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: uber-muse-connector
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: UBER_API_BASE_URL
+        value: https://api.uber.com/v1.2
+      - key: UBER_ENV
+        value: sandbox
+      - key: UBER_CLIENT_ID
+        sync: false
+      - key: UBER_CLIENT_SECRET
+        sync: false
+      - key: UBER_SERVER_TOKEN
+        sync: false
+      - key: CONNECTOR_SECRET_KEY
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
