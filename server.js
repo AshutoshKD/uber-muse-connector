@@ -52,10 +52,16 @@ app.use('/rides', authenticateConnector, require('./routes/rides'));
 app.use((req, res) => res.status(404).json({ success: false, error: `Route ${req.path} not found` }));
 app.use((err, req, res, next) => res.status(500).json({ success: false, error: 'Internal server error' }));
 
-app.listen(PORT, () => {
-  const { isSandbox } = require('./utils/uberClient');
-  console.log(`\n✅ Uber Muse Connector running on port ${PORT}`);
-  console.log(`📍 Environment: ${isSandbox() ? 'SANDBOX (mock data)' : 'PRODUCTION'}`);
-  console.log(`🔗 Health: http://localhost:${PORT}/health`);
-  if (isSandbox()) console.log(`\n⚠️  Sandbox mode — add real Uber keys to .env to go live\n`);
-});
+// Export for Vercel serverless
+module.exports = app;
+
+// Also listen locally when not on Vercel
+if (process.env.NODE_ENV !== 'production' || process.env.IS_LOCAL) {
+  app.listen(PORT, () => {
+    const { isSandbox } = require('./utils/uberClient');
+    console.log(`\n✅ Uber Muse Connector running on port ${PORT}`);
+    console.log(`📍 Environment: ${isSandbox() ? 'SANDBOX (mock data)' : 'PRODUCTION'}`);
+    console.log(`🔗 Health: http://localhost:${PORT}/health`);
+    if (isSandbox()) console.log(`\n⚠️  Sandbox mode — add real Uber keys to .env to go live\n`);
+  });
+}
